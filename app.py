@@ -14,7 +14,7 @@ def main():
 
     with open("instructions.md", "r", encoding='utf-8') as fmd:
         readme_text = st.markdown(fmd.read())   
-    
+    """
     st.sidebar.title("功能菜单")
     app_mode = st.sidebar.selectbox("选择应用模式", ["应用介绍", "单图检测", "测试展示"])
     if app_mode == "应用介绍":
@@ -25,6 +25,7 @@ def main():
     elif app_mode == "测试展示":
         readme_text.empty()
         display_data_test()
+    """
     # elif app_mode == "测试记录":
     #     readme_text.empty()
     #     show_database()
