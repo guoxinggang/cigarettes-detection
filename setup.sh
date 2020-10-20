@@ -8,6 +8,6 @@ email = \"joshua.lynku@gmail.com\"\n\
 echo "\
 [server]\n\
 headless = true\n\
-enableCORS=false\n\
+enableCORS=true\n\
 port = $PORT\n\
 " > ~/.streamlit/config.toml
