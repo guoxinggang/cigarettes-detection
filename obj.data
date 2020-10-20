@@ -1,0 +1,6 @@
+classes= 1
+train  = /home/judicature/anomalous_detection/ano_pred_cvpr2018/File/darknet/2020_train.txt
+valid  = /home/judicature/anomalous_detection/ano_pred_cvpr2018/File/darknet/2020_test.txt
+#valid = data/coco_val_5k.list
+names = data/obj.names
+backup = backup/
