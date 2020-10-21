@@ -141,7 +141,10 @@ def load_names(names_path):
 
 def yolov4(image, confidence_threshold, overlap_threshold):
 
-    net = cv2.dnn_DetectionModel('./yolov4-obj.cfg', './yolov4-obj_final.weights')
+    try:
+        net = cv2.dnn_DetectionModel('./yolov4-obj.cfg', './yolov4-obj_final.weights')
+    except:
+        st.write(net)
     net.setInputSize(416, 416)
     net.setInputScale(1.0 / 255)
     net.setInputSwapRB(True)
