@@ -106,9 +106,9 @@ def image_selector_ui():
                 boxes[-1][i][1] = int(boxes[-1][i][1] - boxes[-1][i][3]/2)
         return data, boxes
 
-    image_root_path = "data/VOCdevkit/VOC2020/JPEGImages/"
-    test_data_path = "data/VOCdevkit/VOC2020/ImageSets/Main/test.txt"
-    boxes_root_path = "data/VOCdevkit/VOC2020/labels/"
+    image_root_path = "./data/VOCdevkit/VOC2020/JPEGImages/"
+    test_data_path = "./data/VOCdevkit/VOC2020/ImageSets/Main/test.txt"
+    boxes_root_path = "./data/VOCdevkit/VOC2020/labels/"
     data, boxes = load_data(image_root_path, test_data_path, boxes_root_path)
 
     st.sidebar.markdown("# 测试集图片")
@@ -141,7 +141,7 @@ def load_names(names_path):
 
 def yolov4(image, confidence_threshold, overlap_threshold):
 
-    net = cv2.dnn_DetectionModel('yolov4-obj.cfg', 'yolov4-obj_final.weights')
+    net = cv2.dnn_DetectionModel('./yolov4-obj.cfg', './yolov4-obj_final.weights')
     net.setInputSize(416, 416)
     net.setInputScale(1.0 / 255)
     net.setInputSwapRB(True)
