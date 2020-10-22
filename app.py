@@ -140,7 +140,7 @@ def load_names(names_path):
 
 
 def yolov4(image, confidence_threshold, overlap_threshold):
-    weights = ''
+    weights = b''
     for idx in range(0, 10):
         file = './weights/yolov4-obj_final.weights' + '.part' + str(idx)
         with open(file, 'rb') as f:
