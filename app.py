@@ -141,7 +141,7 @@ def load_names(names_path):
 
 def rebuild_weights():
     if not os.path.exists('./yolov4-obj_final.weights'):
-        print('weights file is not exists')
+        st.write('weights file is not exists')
         weights = b''
         for idx in range(0, 10):
             file = './weights/yolov4-obj_final.weights' + '.part' + str(idx)
