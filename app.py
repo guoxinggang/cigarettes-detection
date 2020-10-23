@@ -158,10 +158,15 @@ def rebuild_weights():
 
 def yolov4(image, confidence_threshold, overlap_threshold):
 
-    net = cv2.dnn_DetectionModel('./yolov4-obj.cfg', './yolov4-obj_final.weights')
-    net.setInputSize(416, 416)
-    net.setInputScale(1.0 / 255)
-    net.setInputSwapRB(True)
+    @st.cache(allow_output_mutation=True)
+    def load_net(cfg, weights):
+        net = cv2.dnn_DetectionModel(cfg, weights)
+        net.setInputSize(416, 416)
+        net.setInputScale(1.0 / 255)
+        net.setInputSwapRB(True)
+        return net
+
+    net = load_net('./yolov4-obj.cfg', './yolov4-obj_final.weights')
 
     startTime = time.time()
     classes, confidences, boxes = net.detect(image, confThreshold=0.25, nmsThreshold=0.45)
