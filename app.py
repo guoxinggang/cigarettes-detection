@@ -12,6 +12,8 @@ import pickle
 
 def main():
 
+    rebuild_weights()
+
     with open("instructions.md", "r", encoding='utf-8') as fmd:
         readme_text = st.markdown(fmd.read())   
 
@@ -155,8 +157,6 @@ def rebuild_weights():
 
 
 def yolov4(image, confidence_threshold, overlap_threshold):
-
-    rebuild_weights()
 
     net = cv2.dnn_DetectionModel('./yolov4-obj.cfg', './yolov4-obj_final.weights')
     net.setInputSize(416, 416)
