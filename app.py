@@ -2,13 +2,12 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import cv2, os
 import time
-import cv2
-import os
-from PIL import Image
 
-# import sqlite3
-import pickle
+from PIL import Image
+from util import *
+
 
 def main():
 
@@ -40,7 +39,7 @@ def run_the_app():
     confidence_threshold, overlap_threshold = object_detector_ui()
 
     st.set_option('deprecation.showfileUploaderEncoding', False)
-    file_up = st.file_uploader(label="上传图片", type=None)
+    file_up = st.file_uploader(label="上传测试图片", type=None)
 
     if file_up is not None:
         run_the_app_text.empty()
@@ -48,49 +47,41 @@ def run_the_app():
         img = cv2.cvtColor(np.asarray(image), cv2.COLOR_RGB2BGR)
         img =   cv2.resize(img, (416, 416), cv2.INTER_LINEAR)
         
-        st.markdown('# 测试图片:')
+        st.markdown('### 测试图片:')
         image = image.resize((512, 320))
         st.image(image, use_column_width=True)
         
-        start = time.time()
-        classes, confidences, boxes = yolov4(img, confidence_threshold, overlap_threshold)
-        end = time.time()
-        st.write('detect time: {}'.format(end-start))
-        detection = {'classes':classes, 'confidences':confidences, 'boxes':boxes}
+        curTime = get_cur_time()
+        classes, confidences, boxes, costTime = yolov4(img, confidence_threshold, overlap_threshold)
 
-        st.markdown('# 测试结果:')
+        st.markdown('### 检测结果:')
         if type(classes) == tuple:
-            st.warning("检测失败!没有卷烟目标或目标识别失败。。。")
+            st.warning("未发现卷烟目标或者算法检测失败！！ ╮(╯▽╰)╭")
         else:
-            st.warning("发现疑似卷烟，警告!!")
+            st.sidebar.warning("发现疑似目标--香烟，警告!!")
+            show_detect_result(curTime, classes, confidences, boxes, costTime)
+            st.balloons()
             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-            # store_into_sqlite(img, detection, get_cur_time())
-            draw_image_with_predict_boxes(img, classes, confidences, boxes, None, None, False)
+            draw_image_with_predict_boxes(img, classes, confidences, boxes, None, False)
 
 
 def display_data_test():
     selected_image_index, selected_image, selected_image_boxes = image_selector_ui()
     confidence_threshold, overlap_threshold = object_detector_ui()
 
+    curTime = get_cur_time()
     origin_image = selected_image.copy()
     predict_image = selected_image.copy()
-    classes, confidences, boxes = yolov4(predict_image, confidence_threshold, overlap_threshold)
+    classes, confidences, boxes, costTime = yolov4(predict_image, confidence_threshold, overlap_threshold)
 
     origin_image = cv2.cvtColor(origin_image, cv2.COLOR_BGR2RGB)
-    draw_image_with_real_boxes(origin_image, selected_image_boxes, "Ground Truth", "**Human-annotated data** (image `%i`)" % selected_image_index)
+    draw_image_with_real_boxes(origin_image, selected_image_boxes, "**Human-annotated data** (image `%i`)" % selected_image_index)
     if type(classes) == tuple:
-        st.warning("检测失败!没有卷烟目标或目标识别失败。。。")
+        st.warning("未发现卷烟目标或者算法检测失败！！ ╮(╯▽╰)╭")
     else:
+        show_detect_result(curTime, classes, confidences, boxes, costTime)
         predict_image = cv2.cvtColor(predict_image, cv2.COLOR_BGR2RGB)
-        draw_image_with_predict_boxes(predict_image, classes, confidences, boxes, "Real-time Computer Vision", "**YOLO v4 Model** (overlap `%3.2f`) (confidence `%3.2f`)" % (overlap_threshold, confidence_threshold))
-
-
-# def show_database():
-
-#     with open("show_database_table.md", "r", encoding='utf-8') as fmd:
-#         st.markdown(fmd.read()) 
-    
-#     st.write(query_sqlite())
+        draw_image_with_predict_boxes(predict_image, classes, confidences, boxes, "**YOLO v4 Model** (overlap `%3.2f`) (confidence `%3.2f`)" % (overlap_threshold, confidence_threshold))
 
 
 def image_selector_ui():
@@ -126,37 +117,27 @@ def image_selector_ui():
     
 
 def object_detector_ui():
-    st.sidebar.markdown("# 模型参数设置")
-    confidence_threshold = st.sidebar.slider("Confidence threshold", 0.0, 1.0, 0.1, 0.01)
-    overlap_threshold = st.sidebar.slider("Overlap threshold", 0.0, 1.0, 0.4, 0.01)
+    st.sidebar.markdown("## 模型参数设置:")
+    confidence_threshold = st.sidebar.slider("置信度阈值：", 0.0, 1.0, 0.25, 0.01)
+    overlap_threshold = st.sidebar.slider("IOU 阈值：", 0.0, 1.0, 0.5, 0.01)
     return confidence_threshold, overlap_threshold
 
 
+@st.cache
 def load_image(path):
     image = cv2.imread(path)
     image = cv2.resize(image, (416, 416), cv2.INTER_LINEAR)
     return image
 
 
+@st.cache
 def load_names(names_path):
     with open(names_path, 'rt') as f:
         names = f.read().rstrip('\n').split('\n')
     return names
 
 
-def rebuild_weights():
-    if not os.path.exists('./yolov4-obj_final.weights'):
-        st.write('weights file is not exists')
-        weights = b''
-        for idx in range(0, 10):
-            file = './weights/yolov4-obj_final.weights' + '.part' + str(idx)
-            with open(file, 'rb') as f:
-                weights += f.read()
-        with open('./yolov4-obj_final.weights', 'wb') as f:
-            f.write(weights)
-
-
-def yolov4(image, confidence_threshold, overlap_threshold):
+def yolov4(image, confidence_threshold=0.25, overlap_threshold=0.50):
 
     @st.cache(allow_output_mutation=True)
     def load_net(cfg, weights):
@@ -171,12 +152,12 @@ def yolov4(image, confidence_threshold, overlap_threshold):
     startTime = time.time()
     classes, confidences, boxes = net.detect(image, confThreshold=0.25, nmsThreshold=0.45)
     endTime = time.time()
-    # print('Time: {}s'.format(endTime-startTime))
+    costTime = endTime - startTime
 
-    return classes, confidences, boxes
+    return classes, confidences, boxes, costTime
 
 
-def draw_image_with_real_boxes(image, boxes, header, description, show_info=True):
+def draw_image_with_real_boxes(image, boxes, description, show_info=True):
     for box in boxes:
         label = '%s: %s' % ('cigarette', 'ground truth')
         labelSize, baseLine = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
@@ -188,13 +169,12 @@ def draw_image_with_real_boxes(image, boxes, header, description, show_info=True
         cv2.putText(image, label, (left, top), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0))
 
     if show_info:
-        st.subheader(header)
         st.markdown(description)
     image = cv2.resize(image, (512, 320), cv2.INTER_LINEAR)
     st.image(image.astype(np.uint8), use_column_width=True)
 
 
-def draw_image_with_predict_boxes(image, classes, confidences, boxes, header, description, show_info=True):
+def draw_image_with_predict_boxes(image, classes, confidences, boxes, description, show_info=True):
 
     names = load_names('obj.names')
 
@@ -209,67 +189,25 @@ def draw_image_with_predict_boxes(image, classes, confidences, boxes, header, de
 	    cv2.putText(image, label, (left, top), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0))
 
     if show_info:
-        st.subheader(header)
         st.markdown(description)
     image = cv2.resize(image, (512, 320), cv2.INTER_LINEAR)
     st.image(image.astype(np.uint8), use_column_width=True)
 
 
-class ImageData(object):
-    def __init__(self, image, detection, test_time):
-        self.image = image
-        self.detection = detection
-        self.test_time = test_time
-
-    def __str__(self):
-        return 'test_time: {}'.format(self.test_time)
-
-
-def get_cur_time():
-    time_tup = time.localtime(time.time())
-    format_time = '%Y-%m-%d_%a_%H-%M-%S'
-    cur_time = time.strftime(format_time, time_tup)
-    return cur_time
-
-
-# def store_into_sqlite(image, detection, test_time):
-
-#     image_data = ImageData(image, detection, test_time)
-
-#     con = sqlite3.connect('data.db')
-#     cur = con.cursor()
-#     cur.execute("insert into pickled(data) values (?)", (sqlite3.Binary(pickle.dumps(image_data, protocol=2)),))
-#     cur.execute("select data from pickled")
-#     con.commit()
-#     con.close()
-#     print('database write done')
-
-#     return True
-
-
-# def query_sqlite():
-
-#     data_dict = {
-#         'test time' : [],
-#         'class' : [],
-#         'confidence' : [],
-#     }
-
-#     con = sqlite3.connect('data.db')
-#     cur = con.cursor()  
-#     cur.execute("select data from pickled")
-#     con.commit()
-#     for row in cur:
-#         serialized_data = row[0]
-#         image_data = pickle.loads(serialized_data)
-#         data_dict['test time'].append(image_data.test_time)
-#         data_dict['class'].append(image_data.detection['classes'])
-#         data_dict['confidence'].append(image_data.detection['confidences'])
-#     con.close()
-#     print('query finished!')
+def show_detect_result(curTime, classes, confidences, boxes, costTime):
     
-#     return pd.DataFrame(data_dict)
+    names = load_names('obj.names')
+
+    detect_result = '## 测试结果:\n'
+    detect_result += '| 测试时间 | {} |\n'.format(curTime)
+    detect_result += '| :--: | :--: |\n'
+    detect_result += '| 检测时长 | {:.15f}(s) |\n'.format(costTime)
+    for clss, conf in zip(classes, confidences):
+        detect_result += '| 目标类别 | {} |\n'.format(names[clss[0]])
+        detect_result += '| 类置信度 | {} |\n'.format(conf[0])
     
+    st.sidebar.markdown(detect_result)
+
 
 if __name__ == '__main__':
     main()
