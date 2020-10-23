@@ -62,7 +62,7 @@ def run_the_app():
         else:
             st.warning("发现疑似卷烟，警告!!")
             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-            store_into_sqlite(img, detection, get_cur_time())
+            # store_into_sqlite(img, detection, get_cur_time())
             draw_image_with_predict_boxes(img, classes, confidences, boxes, None, None, False)
 
 
