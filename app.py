@@ -50,7 +50,10 @@ def run_the_app():
         image = image.resize((512, 320))
         st.image(image, use_column_width=True)
         
+        start = time.time()
         classes, confidences, boxes = yolov4(img, confidence_threshold, overlap_threshold)
+        end = time.time()
+        st.write('detect time: {}'.format(end-start))
         detection = {'classes':classes, 'confidences':confidences, 'boxes':boxes}
 
         st.markdown('# 测试结果:')
