@@ -7,7 +7,7 @@ import cv2
 import os
 from PIL import Image
 
-import sqlite3
+# import sqlite3
 import pickle
 
 def main():
@@ -83,12 +83,12 @@ def display_data_test():
         draw_image_with_predict_boxes(predict_image, classes, confidences, boxes, "Real-time Computer Vision", "**YOLO v4 Model** (overlap `%3.2f`) (confidence `%3.2f`)" % (overlap_threshold, confidence_threshold))
 
 
-def show_database():
+# def show_database():
 
-    with open("show_database_table.md", "r", encoding='utf-8') as fmd:
-        st.markdown(fmd.read()) 
+#     with open("show_database_table.md", "r", encoding='utf-8') as fmd:
+#         st.markdown(fmd.read()) 
     
-    st.write(query_sqlite())
+#     st.write(query_sqlite())
 
 
 def image_selector_ui():
@@ -227,43 +227,43 @@ def get_cur_time():
     return cur_time
 
 
-def store_into_sqlite(image, detection, test_time):
+# def store_into_sqlite(image, detection, test_time):
 
-    image_data = ImageData(image, detection, test_time)
+#     image_data = ImageData(image, detection, test_time)
 
-    con = sqlite3.connect('data.db')
-    cur = con.cursor()
-    cur.execute("insert into pickled(data) values (?)", (sqlite3.Binary(pickle.dumps(image_data, protocol=2)),))
-    cur.execute("select data from pickled")
-    con.commit()
-    con.close()
-    print('database write done')
+#     con = sqlite3.connect('data.db')
+#     cur = con.cursor()
+#     cur.execute("insert into pickled(data) values (?)", (sqlite3.Binary(pickle.dumps(image_data, protocol=2)),))
+#     cur.execute("select data from pickled")
+#     con.commit()
+#     con.close()
+#     print('database write done')
 
-    return True
+#     return True
 
 
-def query_sqlite():
+# def query_sqlite():
 
-    data_dict = {
-        'test time' : [],
-        'class' : [],
-        'confidence' : [],
-    }
+#     data_dict = {
+#         'test time' : [],
+#         'class' : [],
+#         'confidence' : [],
+#     }
 
-    con = sqlite3.connect('data.db')
-    cur = con.cursor()  
-    cur.execute("select data from pickled")
-    con.commit()
-    for row in cur:
-        serialized_data = row[0]
-        image_data = pickle.loads(serialized_data)
-        data_dict['test time'].append(image_data.test_time)
-        data_dict['class'].append(image_data.detection['classes'])
-        data_dict['confidence'].append(image_data.detection['confidences'])
-    con.close()
-    print('query finished!')
+#     con = sqlite3.connect('data.db')
+#     cur = con.cursor()  
+#     cur.execute("select data from pickled")
+#     con.commit()
+#     for row in cur:
+#         serialized_data = row[0]
+#         image_data = pickle.loads(serialized_data)
+#         data_dict['test time'].append(image_data.test_time)
+#         data_dict['class'].append(image_data.detection['classes'])
+#         data_dict['confidence'].append(image_data.detection['confidences'])
+#     con.close()
+#     print('query finished!')
     
-    return pd.DataFrame(data_dict)
+#     return pd.DataFrame(data_dict)
     
 
 if __name__ == '__main__':
