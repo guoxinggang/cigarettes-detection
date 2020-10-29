@@ -33,9 +33,11 @@ def set_png_as_page_bg(png_file):
     return
 
 def set_png_as_sidebar_bg(png_file):
+    """
     img = cv2.imread(png_file)
-    img = cv2.resize(img, (333, 888), cv2.INTER_LINEAR)
+    img = cv2.resize(img, (224, 999), cv2.INTER_LINEAR)
     cv2.imwrite(png_file, img)
+    """
     bin_str = get_base64_of_bin_file(png_file)
     page_bg_img = '''
     <style>
@@ -195,7 +197,7 @@ def image_selector_ui():
     boxes_root_path = "./data/VOCdevkit/VOC2020/labels/"
     data, boxes = load_data(image_root_path, test_data_path, boxes_root_path)
 
-    st.sidebar.markdown("# 测试集图片")
+    st.sidebar.markdown("# 测试图片")
     selected_image_index = st.sidebar.slider("选择图片 (index)", 0, len(data)-1, 0)
     selected_image = load_image(data[selected_image_index])
     selected_image_boxes = boxes[selected_image_index]
@@ -205,7 +207,7 @@ def image_selector_ui():
     
 
 def object_detector_ui():
-    st.sidebar.markdown("## 模型参数设置:")
+    st.sidebar.markdown("## 模型设置:")
 
     confidence_threshold = st.sidebar.slider("置信度阈值(0.25)：", 0.0, 1.0, 0.25, 0.01)
     overlap_threshold = st.sidebar.slider("IOU 阈值(0.45)：", 0.0, 1.0, 0.45, 0.01)
