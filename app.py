@@ -78,49 +78,34 @@ def main():
 
 def run_the_app():
 
-<<<<<<< HEAD
     coll, colb, colr = st.beta_columns((1, 4, 1))
     
     with open("run_the_app.md", "r", encoding='utf-8') as fmd:
         run_the_app_text = colb.markdown(fmd.read()) 
-=======
-    with open("run_the_app.md", "r", encoding='utf-8') as fmd:
-        run_the_app_text = st.markdown(fmd.read()) 
->>>>>>> 0498c8e94b733b66095a48d60e40c12f2fb74a19
 
     confidence_threshold, overlap_threshold = object_detector_ui()
 
     st.set_option('deprecation.showfileUploaderEncoding', False)
-<<<<<<< HEAD
+
     file_up = colb.file_uploader(label="上传测试图片", type=None)
 
     col1, colb, col2 = st.beta_columns((5, 1, 5))
-=======
-    file_up = st.file_uploader(label="上传测试图片", type=None)
->>>>>>> 0498c8e94b733b66095a48d60e40c12f2fb74a19
 
     if file_up is not None:
         run_the_app_text.empty()
         image = Image.open(file_up)
         img = cv2.cvtColor(np.asarray(image), cv2.COLOR_RGB2BGR)
-<<<<<<< HEAD
+
         img =  cv2.resize(img, (416, 416), cv2.INTER_LINEAR)
         
         col1.markdown('### 测试图片:')
         image = image.resize((512, 320))
         col1.image(image, use_column_width=True)
-=======
-        img =   cv2.resize(img, (416, 416), cv2.INTER_LINEAR)
-        
-        st.markdown('### 测试图片:')
-        image = image.resize((512, 320))
-        st.image(image, use_column_width=True)
->>>>>>> 0498c8e94b733b66095a48d60e40c12f2fb74a19
         
         curTime = get_cur_time()
         classes, confidences, boxes, costTime = yolov4(img, confidence_threshold, overlap_threshold)
 
-<<<<<<< HEAD
+
         bimg = cv2.imread('VS.jpg')
         bimg = cv2.cvtColor(bimg, cv2.COLOR_BGR2RGB)
         colb.markdown('#  ')
@@ -131,9 +116,7 @@ def run_the_app():
         colb.image(bimg, use_column_width=True)
 
         col2.markdown('### 检测结果:')
-=======
-        st.markdown('### 检测结果:')
->>>>>>> 0498c8e94b733b66095a48d60e40c12f2fb74a19
+
         if type(classes) == tuple:
             st.warning("未发现卷烟目标或者算法检测失败！！ ╮(╯▽╰)╭")
         else:
@@ -141,7 +124,7 @@ def run_the_app():
             show_detect_result(curTime, classes, confidences, boxes, costTime)
             st.balloons()
             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-<<<<<<< HEAD
+
             draw_image_with_predict_boxes(img, classes, confidences, boxes, col2, None, False)
 
 
@@ -163,36 +146,22 @@ def display_data_test():
     colb.markdown('#  ')
     colb.image(bimg, use_column_width=True)
 
-=======
-            draw_image_with_predict_boxes(img, classes, confidences, boxes, None, False)
-
-
-def display_data_test():
-    selected_image_index, selected_image, selected_image_boxes = image_selector_ui()
-    confidence_threshold, overlap_threshold = object_detector_ui()
-
->>>>>>> 0498c8e94b733b66095a48d60e40c12f2fb74a19
     curTime = get_cur_time()
     origin_image = selected_image.copy()
     predict_image = selected_image.copy()
     classes, confidences, boxes, costTime = yolov4(predict_image, confidence_threshold, overlap_threshold)
 
     origin_image = cv2.cvtColor(origin_image, cv2.COLOR_BGR2RGB)
-<<<<<<< HEAD
+
     draw_image_with_real_boxes(origin_image, selected_image_boxes, col1, "**Human-annotated data** (image `%i`)" % selected_image_index)
-=======
-    draw_image_with_real_boxes(origin_image, selected_image_boxes, "**Human-annotated data** (image `%i`)" % selected_image_index)
->>>>>>> 0498c8e94b733b66095a48d60e40c12f2fb74a19
+
     if type(classes) == tuple:
         st.warning("未发现卷烟目标或者算法检测失败！！ ╮(╯▽╰)╭")
     else:
         show_detect_result(curTime, classes, confidences, boxes, costTime)
         predict_image = cv2.cvtColor(predict_image, cv2.COLOR_BGR2RGB)
-<<<<<<< HEAD
         draw_image_with_predict_boxes(predict_image, classes, confidences, boxes, col2, "**YOLO v4 Model** (overlap `%3.2f`) (confidence `%3.2f`)" % (overlap_threshold, confidence_threshold))
-=======
-        draw_image_with_predict_boxes(predict_image, classes, confidences, boxes, "**YOLO v4 Model** (overlap `%3.2f`) (confidence `%3.2f`)" % (overlap_threshold, confidence_threshold))
->>>>>>> 0498c8e94b733b66095a48d60e40c12f2fb74a19
+
 
 
 def image_selector_ui():
@@ -229,13 +198,10 @@ def image_selector_ui():
 
 def object_detector_ui():
     st.sidebar.markdown("## 模型参数设置:")
-<<<<<<< HEAD
+
     confidence_threshold = st.sidebar.slider("置信度阈值(0.25)：", 0.0, 1.0, 0.25, 0.01)
     overlap_threshold = st.sidebar.slider("IOU 阈值(0.45)：", 0.0, 1.0, 0.45, 0.01)
-=======
-    confidence_threshold = st.sidebar.slider("置信度阈值：", 0.0, 1.0, 0.25, 0.01)
-    overlap_threshold = st.sidebar.slider("IOU 阈值：", 0.0, 1.0, 0.5, 0.01)
->>>>>>> 0498c8e94b733b66095a48d60e40c12f2fb74a19
+
     return confidence_threshold, overlap_threshold
 
 
@@ -253,11 +219,8 @@ def load_names(names_path):
     return names
 
 
-<<<<<<< HEAD
+
 def yolov4(image, confidence_threshold=0.25, overlap_threshold=0.45):
-=======
-def yolov4(image, confidence_threshold=0.25, overlap_threshold=0.50):
->>>>>>> 0498c8e94b733b66095a48d60e40c12f2fb74a19
 
     @st.cache(allow_output_mutation=True)
     def load_net(cfg, weights):
@@ -270,22 +233,17 @@ def yolov4(image, confidence_threshold=0.25, overlap_threshold=0.50):
     net = load_net('./yolov4-obj.cfg', './yolov4-obj_final.weights')
 
     startTime = time.time()
-<<<<<<< HEAD
+
     classes, confidences, boxes = net.detect(image, confThreshold=confidence_threshold, nmsThreshold=overlap_threshold)
-=======
-    classes, confidences, boxes = net.detect(image, confThreshold=0.25, nmsThreshold=0.45)
->>>>>>> 0498c8e94b733b66095a48d60e40c12f2fb74a19
     endTime = time.time()
     costTime = endTime - startTime
 
     return classes, confidences, boxes, costTime
 
 
-<<<<<<< HEAD
+
 def draw_image_with_real_boxes(image, boxes, col1, description, show_info=True):
-=======
-def draw_image_with_real_boxes(image, boxes, description, show_info=True):
->>>>>>> 0498c8e94b733b66095a48d60e40c12f2fb74a19
+
     for box in boxes:
         label = '%s: %s' % ('cigarette', 'ground truth')
         labelSize, baseLine = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
@@ -297,7 +255,6 @@ def draw_image_with_real_boxes(image, boxes, description, show_info=True):
         cv2.putText(image, label, (left, top), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0))
 
     if show_info:
-<<<<<<< HEAD
         col1.header(description)
         col1.markdown('# ')
     image = cv2.resize(image, (512, 320), cv2.INTER_LINEAR)
@@ -305,14 +262,6 @@ def draw_image_with_real_boxes(image, boxes, description, show_info=True):
 
 
 def draw_image_with_predict_boxes(image, classes, confidences, boxes, col2, description, show_info=True):
-=======
-        st.markdown(description)
-    image = cv2.resize(image, (512, 320), cv2.INTER_LINEAR)
-    st.image(image.astype(np.uint8), use_column_width=True)
-
-
-def draw_image_with_predict_boxes(image, classes, confidences, boxes, description, show_info=True):
->>>>>>> 0498c8e94b733b66095a48d60e40c12f2fb74a19
 
     names = load_names('obj.names')
 
@@ -327,16 +276,10 @@ def draw_image_with_predict_boxes(image, classes, confidences, boxes, descriptio
 	    cv2.putText(image, label, (left, top), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0))
 
     if show_info:
-<<<<<<< HEAD
         col2.header(description)
         col2.markdown('# ')
     image = cv2.resize(image, (512, 320), cv2.INTER_LINEAR)
     col2.image(image.astype(np.uint8), use_column_width=True)
-=======
-        st.markdown(description)
-    image = cv2.resize(image, (512, 320), cv2.INTER_LINEAR)
-    st.image(image.astype(np.uint8), use_column_width=True)
->>>>>>> 0498c8e94b733b66095a48d60e40c12f2fb74a19
 
 
 def show_detect_result(curTime, classes, confidences, boxes, costTime):
