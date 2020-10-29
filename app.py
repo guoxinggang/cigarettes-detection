@@ -79,13 +79,6 @@ def main():
 
 def run_the_app():
 
-    @st.cache
-    def load_vs_image(image_path):
-        image = cv2.imread(image_path)
-        image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-        image = cv2.resize(image, (416, 416))
-        return image
-
     confidence_threshold, overlap_threshold = object_detector_ui()
 
     col_l_1, col_b_1, col_r_1 = st.beta_columns((1, 4, 1))
@@ -170,8 +163,7 @@ def display_data_test():
         origin_image = cv2.cvtColor(origin_image, cv2.COLOR_BGR2RGB)
         draw_image_with_real_boxes(origin_image, selected_image_boxes, col_l_2, "**Human-annotated data** (image `%i`)" % selected_image_index)
 
-        vs_img = cv2.imread('VS.jpg')
-        vs_img = cv2.cvtColor(vs_img, cv2.COLOR_BGR2RGB)
+        vs_img = load_vs_image('./VS.jpg')
         for cnt in range(5):
             col_b_2.markdown('#  ')
         col_b_2.image(vs_img, use_column_width=True)
@@ -220,6 +212,13 @@ def object_detector_ui():
 
     return confidence_threshold, overlap_threshold
 
+
+@st.cache
+def load_vs_image(image_path):
+    image = cv2.imread(image_path)
+    image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+    image = cv2.resize(image, (416, 416))
+    return image
 
 @st.cache
 def load_image(path):
