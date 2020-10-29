@@ -55,6 +55,7 @@ set_png_as_sidebar_bg('sidebar.png')
 
 
 def main():
+
     rebuild_weights()
     coll, colb, colr = st.beta_columns((1, 4, 1))
 
@@ -78,90 +79,105 @@ def main():
 
 def run_the_app():
 
-    coll, colb, colr = st.beta_columns((1, 4, 1))
-    
-    with open("run_the_app.md", "r", encoding='utf-8') as fmd:
-        run_the_app_text = colb.markdown(fmd.read()) 
+    @st.cache
+    def load_vs_image(image_path):
+        image = cv2.imread(image_path)
+        image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+        image = cv2.resize(image, (416, 416))
+        return image
 
     confidence_threshold, overlap_threshold = object_detector_ui()
 
+    col_l_1, col_b_1, col_r_1 = st.beta_columns((1, 4, 1))
+    
+    with open("run_the_app.md", "r", encoding='utf-8') as fmd:
+        run_the_app_text = col_b_1.markdown(fmd.read()) 
+
     st.set_option('deprecation.showfileUploaderEncoding', False)
+    file_up = col_b_1.file_uploader(label="上传测试图片", type=None)
 
-    file_up = colb.file_uploader(label="上传测试图片", type=None)
-
-    col1, colb, col2 = st.beta_columns((5, 1, 5))
 
     if file_up is not None:
+
         run_the_app_text.empty()
+
         image = Image.open(file_up)
         img = cv2.cvtColor(np.asarray(image), cv2.COLOR_RGB2BGR)
-
         img =  cv2.resize(img, (416, 416), cv2.INTER_LINEAR)
-        
-        col1.markdown('### 测试图片:')
-        image = image.resize((512, 320))
-        col1.image(image, use_column_width=True)
-        
+
         curTime = get_cur_time()
         classes, confidences, boxes, costTime = yolov4(img, confidence_threshold, overlap_threshold)
 
-
-        bimg = cv2.imread('VS.jpg')
-        bimg = cv2.cvtColor(bimg, cv2.COLOR_BGR2RGB)
-        colb.markdown('#  ')
-        colb.markdown('#  ')
-        colb.markdown('#  ')
-        colb.markdown('#  ')
-        colb.markdown('#  ')
-        colb.image(bimg, use_column_width=True)
-
-        col2.markdown('### 检测结果:')
-
         if type(classes) == tuple:
-            st.warning("未发现卷烟目标或者算法检测失败！！ ╮(╯▽╰)╭")
-        else:
-            st.sidebar.warning("发现疑似目标--香烟，警告!!")
-            show_detect_result(curTime, classes, confidences, boxes, costTime)
-            st.balloons()
-            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
-            draw_image_with_predict_boxes(img, classes, confidences, boxes, col2, None, False)
+            col_b_1.error("未发现卷烟目标或者算法检测失败！！ ╮(╯▽╰)╭")
+
+            col_b_1.markdown('### 测试图片:')
+            image = image.resize((512, 320))
+            col_b_1.image(image, use_column_width=True)
+
+        else:
+
+            st.sidebar.error("发现疑似目标--香烟，警告!!")
+            show_detect_result(curTime, classes, confidences, boxes, costTime)
+
+            col_l_2, col_b_2, col_r_2 = st.beta_columns((5, 1, 5))
+
+            col_l_2.markdown('### 测试图片:')
+            image = image.resize((512, 320))
+            col_l_2.image(image, use_column_width=True)
+
+            vs_image = load_vs_image('./VS.jpg')
+            for cnt in range(5):
+                col_b_2.markdown('# ')
+            col_b_2.image(vs_image, use_column_width=True)
+
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            col_r_2.markdown('### 检测结果:')
+            draw_image_with_predict_boxes(img, classes, confidences, boxes, col_r_2, None, False)
+            st.balloons()
 
 
 def display_data_test():
+
     st.markdown('# 测试展示')
-    st.markdown('# ')
+    for cnt in range(1):
+        st.markdown('# ')
+
+    col_l_1, col_b_1, col_r_1 = st.beta_columns((1, 4, 1))
+    
     selected_image_index, selected_image, selected_image_boxes = image_selector_ui()
     confidence_threshold, overlap_threshold = object_detector_ui()
-
-    col1, colb, col2 = st.beta_columns((5, 1, 5))
-
-    bimg = cv2.imread('VS.jpg')
-    bimg = cv2.cvtColor(bimg, cv2.COLOR_BGR2RGB)
-    colb.markdown('#  ')
-    colb.markdown('#  ')
-    colb.markdown('#  ')
-    colb.markdown('#  ')
-    colb.markdown('#  ')
-    colb.markdown('#  ')
-    colb.image(bimg, use_column_width=True)
 
     curTime = get_cur_time()
     origin_image = selected_image.copy()
     predict_image = selected_image.copy()
     classes, confidences, boxes, costTime = yolov4(predict_image, confidence_threshold, overlap_threshold)
 
-    origin_image = cv2.cvtColor(origin_image, cv2.COLOR_BGR2RGB)
-
-    draw_image_with_real_boxes(origin_image, selected_image_boxes, col1, "**Human-annotated data** (image `%i`)" % selected_image_index)
-
     if type(classes) == tuple:
-        st.warning("未发现卷烟目标或者算法检测失败！！ ╮(╯▽╰)╭")
-    else:
-        show_detect_result(curTime, classes, confidences, boxes, costTime)
-        predict_image = cv2.cvtColor(predict_image, cv2.COLOR_BGR2RGB)
-        draw_image_with_predict_boxes(predict_image, classes, confidences, boxes, col2, "**YOLO v4 Model** (overlap `%3.2f`) (confidence `%3.2f`)" % (overlap_threshold, confidence_threshold))
 
+        col_b_1.error("未发现卷烟目标或者算法检测失败！！ ╮(╯▽╰)╭")
+
+        origin_image = cv2.cvtColor(origin_image, cv2.COLOR_BGR2RGB)
+        draw_image_with_real_boxes(origin_image, selected_image_boxes, col_b_1, "**Human-annotated data** (image `%i`)" % selected_image_index)
+
+    else:
+
+        show_detect_result(curTime, classes, confidences, boxes, costTime)
+
+        col_l_2, col_b_2, col_r_2 = st.beta_columns((5, 1, 5))
+
+        origin_image = cv2.cvtColor(origin_image, cv2.COLOR_BGR2RGB)
+        draw_image_with_real_boxes(origin_image, selected_image_boxes, col_l_2, "**Human-annotated data** (image `%i`)" % selected_image_index)
+
+        vs_img = cv2.imread('VS.jpg')
+        vs_img = cv2.cvtColor(vs_img, cv2.COLOR_BGR2RGB)
+        for cnt in range(5):
+            col_b_2.markdown('#  ')
+        col_b_2.image(vs_img, use_column_width=True)
+
+        predict_image = cv2.cvtColor(predict_image, cv2.COLOR_BGR2RGB)
+        draw_image_with_predict_boxes(predict_image, classes, confidences, boxes, col_r_2, "**YOLO v4 Model** (overlap `%3.2f`) (confidence `%3.2f`)" % (overlap_threshold, confidence_threshold))
 
 
 def image_selector_ui():
@@ -219,7 +235,6 @@ def load_names(names_path):
     return names
 
 
-
 def yolov4(image, confidence_threshold=0.25, overlap_threshold=0.45):
 
     @st.cache(allow_output_mutation=True)
@@ -239,7 +254,6 @@ def yolov4(image, confidence_threshold=0.25, overlap_threshold=0.45):
     costTime = endTime - startTime
 
     return classes, confidences, boxes, costTime
-
 
 
 def draw_image_with_real_boxes(image, boxes, col1, description, show_info=True):
